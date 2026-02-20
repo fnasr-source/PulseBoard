@@ -1,36 +1,191 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PulseBoard
 
-## Getting Started
+**Consultant Control Room** — A unified dashboard for managing multiple clients, tracking KPIs, running accountability boards, generating reports, and scoring agencies.
 
-First, run the development server:
+**Live Repo:** [fnasr-source/PulseBoard](https://github.com/fnasr-source/PulseBoard)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Framework | Next.js 16 (App Router, TypeScript) |
+| UI | React 19 + Tailwind CSS 4 |
+| Auth | Firebase Authentication (Email/Password) |
+| Database | Cloud Firestore |
+| Storage | Cloud Storage for Firebase |
+| Charts | Recharts |
+| Hosting | Firebase App Hosting (Cloud Run) |
+| Icons | Lucide React |
+
+## Project Structure
+
+```
+src/
+├── app/
+│   ├── (auth)/              # Login + Signup pages
+│   │   ├── login/page.tsx
+│   │   ├── signup/page.tsx
+│   │   └── layout.tsx
+│   ├── (dashboard)/         # Auth-protected dashboard
+│   │   ├── dashboard/page.tsx
+│   │   ├── settings/page.tsx
+│   │   ├── clients/
+│   │   │   ├── new/page.tsx           # Client setup wizard
+│   │   │   └── [id]/
+│   │   │       ├── page.tsx           # Client overview
+│   │   │       ├── kpis/page.tsx      # KPI Dictionary
+│   │   │       ├── kpis/[kpiId]/page.tsx  # KPI detail + chart
+│   │   │       ├── data-entry/page.tsx    # Manual + CSV import
+│   │   │       ├── accountability/page.tsx # Issue board
+│   │   │       ├── reports/page.tsx       # Reports list
+│   │   │       ├── reports/new/page.tsx   # Report generator
+│   │   │       ├── reports/[reportId]/page.tsx  # Report viewer
+│   │   │       └── agencies/page.tsx      # Agency scorecards
+│   │   └── layout.tsx
+│   ├── globals.css
+│   ├── layout.tsx
+│   └── page.tsx             # Landing page
+├── components/
+│   └── layout/
+│       ├── Sidebar.tsx      # Dashboard sidebar with org selector + nav
+│       └── Header.tsx       # Dashboard header with search
+└── lib/
+    ├── auth/
+    │   ├── context.tsx      # Firebase Auth provider
+    │   └── org-context.tsx  # Organization provider
+    └── firebase/
+        ├── config.ts        # Client SDK init
+        ├── admin.ts         # Admin SDK init
+        └── types.ts         # All Firestore interfaces
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Setup
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Prerequisites
+- Node.js 20+
+- Firebase project (`pulseboard-ab03b`)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Local Development
 
-## Learn More
+```bash
+# 1. Clone
+git clone https://github.com/fnasr-source/PulseBoard.git
+cd PulseBoard
 
-To learn more about Next.js, take a look at the following resources:
+# 2. Install
+npm install
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# 3. Environment variables
+cp .env.local.example .env.local
+# Fill in your Firebase config (see below)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# 4. Run
+npm run dev
+# → http://localhost:3000
+```
 
-## Deploy on Vercel
+### Environment Variables (`.env.local`)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```env
+NEXT_PUBLIC_FIREBASE_API_KEY=AIzaSyCwCEwo0yVIAFE55fAeOZN0Bw3ZcLBEgHI
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=pulseboard-ab03b.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=pulseboard-ab03b
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=pulseboard-ab03b.firebasestorage.app
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=866619529458
+NEXT_PUBLIC_FIREBASE_APP_ID=1:866619529458:web:cb48adccdc35c7f2b5586b
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Firebase Admin SDK
+Place the service account JSON file at the project root. The Admin SDK (`src/lib/firebase/admin.ts`) auto-detects it by matching `*-firebase-adminsdk-*.json`.
+
+---
+
+## Firebase Project Setup
+
+**Project ID:** `pulseboard-ab03b`
+
+### What's Already Done ✅
+- Firebase web app registered (`pulseboard-web`)
+- Firestore database created (Native mode, `nam5` region)
+- Firebase APIs enabled: Firestore, Identity Toolkit, Storage, Firebase Storage
+- `apphosting.yaml` configured with env vars
+- `firestore.rules` with auth-required rules
+- `.env.local` with real credentials
+
+### What You Need to Do Manually ⚠️
+
+1. **Enable Email/Password Auth:**
+   - Firebase Console → Authentication → Sign-in method → Email/Password → Enable
+
+2. **Connect GitHub to Firebase App Hosting:**
+   - Firebase Console → App Hosting → Get started
+   - Connect your GitHub repo → Select `main` branch
+   - The `apphosting.yaml` in this repo auto-configures the deployment
+
+3. **Deploy Firestore Rules:**
+   ```bash
+   npx firebase-tools deploy --only firestore:rules --project pulseboard-ab03b
+   ```
+
+---
+
+## Current Status
+
+**MVP Milestones 1–8: ✅ COMPLETE**
+
+All core features are implemented and the build passes with 0 TypeScript errors across 16 routes:
+
+| Milestone | Feature | Status |
+|-----------|---------|--------|
+| M1 | Auth + Orgs + Layout | ✅ Done |
+| M2 | Client Setup Wizard | ✅ Done |
+| M3 | KPI Dictionary + Detail | ✅ Done |
+| M4 | Dashboard + Charts | ✅ Done |
+| M5 | CSV Import | ✅ Done |
+| M6 | Accountability Board | ✅ Done |
+| M7 | Reports | ✅ Done |
+| M8 | Agency Scorecards | ✅ Done |
+| M9 | Polish + Tests | 🔲 Not started |
+
+### Next Steps (Milestone 9 — Polish)
+
+- [ ] Seed data script for demo
+- [ ] Error handling and loading states polish
+- [ ] Unit/integration tests
+- [ ] Accessibility audit
+- [ ] Final production build and deploy via Firebase App Hosting
+
+---
+
+## Documentation
+
+| Document | Path | Description |
+|----------|------|-------------|
+| PRD | [`docs/PRD.md`](docs/PRD.md) | Product requirements, personas, user journeys, MVP scope |
+| Tech Design | [`docs/TECH_DESIGN.md`](docs/TECH_DESIGN.md) | Architecture, data model, routes, security model |
+| Task Plan | [`docs/TASK_PLAN.md`](docs/TASK_PLAN.md) | Milestone breakdown with acceptance criteria |
+| Status | [`docs/STATUS.md`](docs/STATUS.md) | Full build history, decisions made, and current state |
+
+---
+
+## Key Design Decisions
+
+1. **Firebase over Prisma/SQLite** — Chose Firestore for zero-infra serverless DB that integrates natively with Firebase Auth and App Hosting
+2. **Top-level collections** — All Firestore collections (clients, kpis, issues, etc.) are top-level with `orgId`/`clientId` indexes for query flexibility
+3. **Client-side rendering** — Dashboard uses `'use client'` components with Firebase Client SDK for real-time data
+4. **Dark mode by default** — Premium glassmorphism design with indigo/purple accent palette
+5. **CSV import with PapaParse** — Client-side parsing with column mapping UI and validation preview
+
+## Dependencies
+
+```
+firebase          # Client SDK (Auth, Firestore, Storage)
+firebase-admin    # Server-side Admin SDK
+recharts          # Line charts for KPI trends
+papaparse         # CSV parsing
+uuid              # ID generation for funnel stages / lead statuses
+date-fns          # Date utilities
+lucide-react      # Icons
+```
